@@ -45,3 +45,14 @@ jobs:
           echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
           # Push the Docker image
           docker push gyenoch/netflix:latest
+
+  deploy:
+    needs: build-analyse-scan
+    runs-on: [aws-netflix]
+    steps:
+      - name: Pull Docker image
+        run: docker pull gyenoch/netflix:latest
+      - name: Trivy Image Scan
+        run: trivy image gyenoch/netflix:latest
+      - name: Run the Netflix container
+        run: docker run -d -p 8081:80 --name netflix gyenoch/netflix:latest
