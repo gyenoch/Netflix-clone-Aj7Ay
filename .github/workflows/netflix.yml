@@ -31,3 +31,17 @@ jobs:
 
       - name: Run Trivy Scan
         run: trivy fs .
+
+      - name: Docker Build and Push
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          # Build the Docker image
+          docker build --build-arg TMDB_V3_API_KEY=a0eb92c03fe314fa3160f4117ca5794e -t netflix .
+          # Tag the Docker image
+          docker tag netflix gyenoch/netflix:latest
+          # Login to DockerHub
+          echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
+          # Push the Docker image
+          docker push gyenoch/netflix:latest
