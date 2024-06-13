@@ -21,38 +21,38 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-      - name: Install Trivy
-        run: |
-          sudo apt-get install wget apt-transport-https gnupg lsb-release -y
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update
-          sudo apt-get install trivy -y
+  #     - name: Install Trivy
+  #       run: |
+  #         sudo apt-get install wget apt-transport-https gnupg lsb-release -y
+  #         wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+  #         echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+  #         sudo apt-get update
+  #         sudo apt-get install trivy -y
 
-      - name: Run Trivy Scan
-        run: trivy fs .
+  #     - name: Run Trivy Scan
+  #       run: trivy fs .
 
-      - name: Docker Build and Push
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        run: |
-          # Build the Docker image
-          docker build --build-arg TMDB_V3_API_KEY=a0eb92c03fe314fa3160f4117ca5794e -t netflix .
-          # Tag the Docker image
-          docker tag netflix gyenoch/netflix:latest
-          # Login to DockerHub
-          echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
-          # Push the Docker image
-          docker push gyenoch/netflix:latest
+  #     - name: Docker Build and Push
+  #       env:
+  #         DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+  #       run: |
+  #         # Build the Docker image
+  #         docker build --build-arg TMDB_V3_API_KEY=a0eb92c03fe314fa3160f4117ca5794e -t netflix .
+  #         # Tag the Docker image
+  #         docker tag netflix gyenoch/netflix:latest
+  #         # Login to DockerHub
+  #         echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
+  #         # Push the Docker image
+  #         docker push gyenoch/netflix:latest
 
-  deploy:
-    needs: build-analyse-scan
-    runs-on: [aws-netflix]
-    steps:
-      - name: Pull Docker image
-        run: docker pull gyenoch/netflix:latest
-      - name: Trivy Image Scan
-        run: trivy image gyenoch/netflix:latest
-      - name: Run the Netflix container
-        run: docker run -d -p 8081:80 --name netflix gyenoch/netflix:latest
+  # deploy:
+  #   needs: build-analyse-scan
+  #   runs-on: [aws-netflix]
+  #   steps:
+  #     - name: Pull Docker image
+  #       run: docker pull gyenoch/netflix:latest
+  #     - name: Trivy Image Scan
+  #       run: trivy image gyenoch/netflix:latest
+  #     - name: Run the Netflix container
+  #       run: docker run -d -p 8081:80 --name netflix gyenoch/netflix:latest
